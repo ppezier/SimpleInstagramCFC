@@ -36,7 +36,11 @@ component
 		public any function callAPI( string endPoint="", struct params={}, string method="GET" ){
 
 			/* préparation de l'appel à l'API Instagram */
-			var httpService = new http( method="#arguments.method#", charset="utf-8" );
+			var httpService = new http(
+				method	= "#arguments.method#",
+				charset	= "utf-8",
+				timeout	= 15 // secondes
+			);
 			httpService.setUrl(this.API_URL & endpoint);
 			httpService.addParam(type="URL", name="access_token", value="#this.getAccessToken()#");
 
@@ -58,7 +62,11 @@ component
 			} // fin switch
 
 			/* appel de l'API */
-			var result = httpService.send().getPrefix();
+			try {
+				var result = httpService.send().getPrefix();
+			} catch(any e) {
+				return( "Erreur de requête http : " & e.message );
+			}
 
 			/**
 			 * vérification du contenu renvoyé
@@ -69,14 +77,13 @@ component
 				return( "Erreur de format de réponse" );
 
 			/**
-			 * tra!tement du contenu renvoyé
+			 * traitement du contenu renvoyé
 			 */
 			json = deserializeJSON(result.fileContent);
 			if (val(json.meta.code) neq 200) // le JSON contient un code d'erreur
 				return( "Erreur de réponse JSON: " & json.meta.error_message );
 			else // tout s'est bien passé
 				return( json );
-			// fin if
 
 		} // fin function callAPI
 
